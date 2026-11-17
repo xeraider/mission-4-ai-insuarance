@@ -1,0 +1,126 @@
+.navbar-container {
+    display: flow-root;
+    width: 1200px;
+    margin: auto;
+    padding: 0 0 25px 0;
+}
+
+.navbar-links {
+    float: left;
+    width: 100%;
+    text-align: center;
+    margin: 0 0 25px 0;
+}
+
+.navbar-links a {
+    display: inline-block;
+    padding: 10px 10px 10px 10px;
+
+    text-decoration: none;
+    color: #0073cf;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+}
+
+.navbar-links a:not(:last-child)::after {
+    content: "|";
+    color: #ccc;
+    margin-left: 15px;
+}
+
+.navbar-logo {
+    float: left;
+    max-width: 320px;
+}
+
+.navbar-content a, .navbar-content span{
+    text-decoration: none;
+    color: black;
+    font-size: 14px;
+    line-height: 21px;
+    font-weight: 700;
+}
+
+.chinese-link {
+    float: right;
+    margin: 0 15px;
+}
+
+.contact-link {
+    float: right;
+    margin: 0 15px;
+}
+
+.contact-link::before{
+    content: "\1F4CD";
+    color: black;
+    margin-right: 5px;
+}
+
+.phone-number {
+    float: right;
+    margin: 0 15px;
+}
+
+.phone-number::before {
+    content: "\1F4DE";
+    color: black;
+    margin-right: 5px;
+}
+
+.accounts {
+    float: right;
+    margin: 0 15px;
+}
+
+.accounts::before{
+    content: "\1F464";
+    color: black;
+    margin-right: 5px;
+}
+
+.menu-container {
+    background: #0073cf;
+}
+
+.menu{
+    display: flow-root;
+    width: 1200px;
+    margin: auto;
+}
+
+.left-menu{
+    float: left;
+}
+
+.right-menu{
+    float: right;
+}
+
+.left-menu a, .right-menu a {
+    display: inline-block;
+    padding: 15px 20px 15px 20px;;
+
+    text-decoration: none;
+    color: white;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.left-menu a:hover, .right-menu a:hover {
+    background: #005fa8;
+}
+
+.dropdown::after {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(45deg);
+    margin-left: 10px;
+    vertical-align: 3px;
+}
