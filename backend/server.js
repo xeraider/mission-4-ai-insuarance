@@ -24,7 +24,7 @@ app.post("/api/insurance/start", async (req, res) => {
         history: [
             {
                 role: "tina",
-                text: results.message,
+                text: result.message,
             }
         ],
         optedIn: false,
