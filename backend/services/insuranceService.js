@@ -1,8 +1,14 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import { GoogleGenAI } from '@google/genai';
 
+dotenv.config({
+    path: "./backend/.env"
+});
+
+const MODEL = "gemini-3.8-flash"
+
 const ai = new GoogleGenAI({
-    apiKey: process.env.GOOGLE_API_KEY,
+    apiKey: process.env.GEMINI_API_KEY,
 });
 
 const insuranceSchema = {
@@ -148,7 +154,7 @@ export async function respondInsurance(history) {
     }
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: MODEL,
         contents: JSON.stringify({
             conversation: history
         }),
@@ -180,7 +186,7 @@ export async function respondInsurance(history) {
 export async function checkConsent(answer) {
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: MODEL,
 
         contents: `
         Classify the user's response to this question:

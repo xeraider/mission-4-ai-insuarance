@@ -17,10 +17,10 @@ const sessions = new Map();
 
 app.post("/api/insurance/start", async (req, res) => {
 
-    const sessionID = randomUUID();
+    const sessionId = randomUUID();
     const result = startInsurance();
 
-    sessions.set(sessionID, {
+    sessions.set(sessionId, {
         history: [
             {
                 role: "tina",
@@ -40,12 +40,12 @@ app.post("/api/insurance/start", async (req, res) => {
 
 app.post("/api/insurance/respond", async (req, res) => {
 
-    const {sessionID, answer} = req.body || {};
+    const {sessionId, answer} = req.body || {};
 
-    const session = session.get(sessionID);
+    const session = sessions.get(sessionId);
 
     if (!session) {
-        res.status(404).json({
+        return res.status(404).json({
             error: "No session found",
         });
     }
@@ -73,35 +73,35 @@ app.post("/api/insurance/respond", async (req, res) => {
 
     const userAnswer = answer.trim();
 
-    if (!session.optedIn) {
-        const consent = await checkConsent(userAnswer);
-
-        if (consent === "declined") {
-            session.completed = true;
-
-            return res.json({
-                message: "No problem! Thank you for your time.",
-                completed: true,
-                recommendations: []
-            });
-        }
-
-        if (consent === "unclear") {
-            return res.json({
-                message: "Would you like to continue? Please answer yes or no.",
-                completed: false,
-                recommendations: []
-            });
-        }
-
-        if (consent === "accepted") {
-            session.optedIn = true;
-        }
-    }
-
     session.busy = true;
 
     try {
+
+        if (!session.optedIn) {
+            const consent = await checkConsent(userAnswer);
+
+            if (consent === "declined") {
+                session.completed = true;
+
+                return res.json({
+                    message: "No problem! Thank you for your time.",
+                    completed: true,
+                    recommendations: []
+                });
+            }
+
+            if (consent === "unclear") {
+                return res.json({
+                    message: "Would you like to continue? Please answer yes or no.",
+                    completed: false,
+                    recommendations: []
+                });
+            }
+
+            if (consent === "accepted") {
+                session.optedIn = true;
+            }
+        }
 
         const updatedHistory = [ ...session.history,
             {
@@ -175,5 +175,5 @@ app.delete("/api/insurance/:sessionId", async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => console.log("Server is running on port ${PORT}"));
+app.listen(PORT, () => {console.log(`Server is running on port ${PORT}`);});
 
