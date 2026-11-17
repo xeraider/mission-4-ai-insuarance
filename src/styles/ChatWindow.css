@@ -2,13 +2,13 @@
 .chat-container {
     display: flex;
     flex-direction: column;
-    width: 60%;
+    background: white;
+    width: 50%;
     max-width: 1200px;
-    margin: 50px auto;
-    min-height: 500px;
-}
-
-.chat-window {
+    margin: 150px auto;
+    padding: 30px 20px 20px 20px;
+    border-radius: 10px;
+    min-height: 600px;
 }
 
 .chat-header {
