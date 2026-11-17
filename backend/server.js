@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import {
     startInterview,
@@ -14,15 +14,15 @@ app.use(express.json());
 
 const sessions = new Map();
 
-app.post("/api/interview/start", (req, res) => {
+app.post("/api/insurance/start", (req, res) => {
 
 });
 
-app.post("/api/interview/answer", (req, res) => {
+app.post("/api/insurance/answer", (req, res) => {
 
 });
 
-app.post("/api/interview/:sessionId", (req, res) => {
+app.post("/api/insurance/:sessionId", (req, res) => {
 
 });
 
