@@ -44,6 +44,17 @@ const insuranceSchema = {
     ]
 };
 
+const consentSchema = {
+    type: "object",
+    properties: {
+        consent: {
+            type: "string",
+            enum: ["accepted", "declined", "unclear"]
+        }
+    },
+    required: ["consent"]
+};
+
 const roleInstructions = `
 ROLE INSTRUCTIONS:
 
@@ -130,7 +141,7 @@ export function startInsurance() {
     };
 }
 
-export async function respondToInsurance(history) {
+export async function respondInsurance(history) {
 
     if (!Array.isArray(history) || !history.length === 0) {
         throw new Error("No history provided");
@@ -164,4 +175,44 @@ export async function respondToInsurance(history) {
     }
 
     return result;
+}
+
+export async function checkConsent(answer) {
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+
+        contents: `
+        Classify the user's response to this question:
+        
+        "May I ask you a few personal questions to help
+        recommend the best insurance policy for you?"
+        
+        User response: ${JSON.stringify(answer)}
+        
+        Rules:
+        - accepted: The user clearly agrees.
+        - declined: The user refuses or does not want to continue.
+        - unclear: The response is ambiguous, conditional,
+          or asks for clarification.
+        
+        Do not assume consent.`,
+
+        config: {
+            responseMimeType: "application/json",
+            responseJsonSchema: consentSchema
+        }
+    });
+
+    if (!response.text) {
+        throw new Error("No response from Gemini");
+    }
+
+    const result = JSON.parse(response.text);
+
+    if (!["accepted", "declined", "unclear"].includes(result.consent)) {
+        throw new Error("Invalid consent classification");
+    }
+
+    return result.consent;
 }

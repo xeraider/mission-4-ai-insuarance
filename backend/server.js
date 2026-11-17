@@ -3,9 +3,10 @@ import cors from "cors";
 import { randomUUID } from "node:crypto";
 
 import {
-    startInterview,
-    respondToInterview,
-} from "../backend/";
+    startInsurance,
+    respondInsurance,
+    checkConsent,
+} from "./services/insuranceService.js";
 
 const app = express();
 
@@ -14,17 +15,165 @@ app.use(express.json());
 
 const sessions = new Map();
 
-app.post("/api/insurance/start", (req, res) => {
+app.post("/api/insurance/start", async (req, res) => {
 
+    const sessionID = randomUUID();
+    const result = startInsurance();
+
+    sessions.set(sessionID, {
+        history: [
+            {
+                role: "tina",
+                text: results.message,
+            }
+        ],
+        optedIn: false,
+        completed: false,
+        busy: false
+    });
+
+    res.status(201).json({
+        sessionId,
+        ...result
+    });
 });
 
-app.post("/api/insurance/answer", (req, res) => {
+app.post("/api/insurance/respond", async (req, res) => {
 
+    const {sessionID, answer} = req.body || {};
+
+    const session = session.get(sessionID);
+
+    if (!session) {
+        res.status(404).json({
+            error: "No session found",
+        });
+    }
+
+    if (session.busy){
+        return res.status(409).json({
+            error: "Session is busy",
+        });
+    }
+
+    if (session.completed){
+        return res.status(400).json({
+            error: "Session is completed",
+        });
+    }
+
+    if (
+        typeof answer !== "string" ||
+        !answer.trim()
+    ) {
+        return res.status(400).json({
+            error: "Invalid answer.",
+        })
+    }
+
+    const userAnswer = answer.trim();
+
+    if (!session.optedIn) {
+        const consent = await checkConsent(userAnswer);
+
+        if (consent === "declined") {
+            session.completed = true;
+
+            return res.json({
+                message: "No problem! Thank you for your time.",
+                completed: true,
+                recommendations: []
+            });
+        }
+
+        if (consent === "unclear") {
+            return res.json({
+                message: "Would you like to continue? Please answer yes or no.",
+                completed: false,
+                recommendations: []
+            });
+        }
+
+        if (consent === "accepted") {
+            session.optedIn = true;
+        }
+    }
+
+    session.busy = true;
+
+    try {
+
+        const updatedHistory = [ ...session.history,
+            {
+                role: "user",
+                text: userAnswer,
+            }
+        ];
+
+        const result = await respondInsurance(updatedHistory);
+
+        if (
+            !result ||
+            typeof result.message !== "string" ||
+            typeof result.completed !== "boolean" ||
+            !Array.isArray(result.recommendations)
+        ) {
+            throw new Error("Invalid Response");
+        }
+
+        session.history = [ ...updatedHistory, {
+                role: "tina",
+                text: result.message,
+            }
+        ];
+
+        session.completed = result.completed;
+
+        res.json(result);
+
+    }
+    catch (error) {
+
+        console.log(error);
+
+        res.status(502).json({
+            error: "Failed to generate response",
+        })
+
+    }
+    finally {
+
+        session.busy = false;
+
+    }
 });
 
-app.post("/api/insurance/:sessionId", (req, res) => {
+app.delete("/api/insurance/:sessionId", async (req, res) => {
 
+    const { sessionId } = req.params;
+
+    const session = sessions.get(sessionId);
+
+    if (!session) {
+        return res.status(404).json({
+            error: "Session not found"
+        });
+    }
+
+    if (session.busy) {
+        return res.status(409).json({
+            error: "Session is busy"
+        });
+    }
+
+    sessions.delete(sessionId);
+
+    res.json({
+        message: "Session deleted successfully"
+    });
 });
 
-app.listen(3001, () => console.log("Server is running on port 3001"));
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => console.log("Server is running on port ${PORT}"));
 
