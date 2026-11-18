@@ -1,4 +1,4 @@
-import {useRef, useState} from "react";
+import {useState, useRef, useEffect} from "react";
 import '../styles/ChatWindow.css'
 
 const API_URL = "http://localhost:3001/api/insurance";
@@ -12,8 +12,14 @@ const ChatWindow = () => {
     const [completed, setCompleted] = useState(false);
     const [error, setError] = useState("");
 
-    const started = useRef(false);
-    const sending = useRef(false);
+    const messagesEndRef = useRef(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end"
+        });
+    }, [messages]);
 
     const startChat = async () => {
 
@@ -181,6 +187,8 @@ const ChatWindow = () => {
                 ))}
 
                 {loading && <p>Loading...</p>}
+
+                <div ref={messagesEndRef} />
 
             </div>
 
