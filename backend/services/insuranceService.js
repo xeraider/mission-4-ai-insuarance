@@ -54,6 +54,14 @@ async function generateWithRetry(contents, config) {
                     error.message
                 );
 
+                const status = Number(error.status || error.code);
+
+                // Model unavailable: try the fallback immediately.
+                if (status === 404) {
+                    break;
+                }
+
+                // Permanent error: don't retry.
                 if (!isRetryableError(error)) {
                     throw error;
                 }
@@ -67,7 +75,7 @@ async function generateWithRetry(contents, config) {
             }
         }
 
-        console.log(`Switching to next Gemini model`);
+        console.log(`Moving to next model`);
     }
 
     throw new Error(

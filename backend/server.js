@@ -134,11 +134,9 @@ app.post("/api/insurance/respond", async (req, res) => {
     }
     catch (error) {
 
-        console.log(error);
-
         res.status(502).json({
-            error: "Failed to generate response",
-        })
+            error: "Tina is having trouble connecting right now. Please try again."
+        });
 
     }
     finally {
