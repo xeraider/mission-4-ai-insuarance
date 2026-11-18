@@ -13,28 +13,13 @@ const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,
 });
 
-const sleep = (ms) => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
-function isRetryableError(error) {
-    const status = Number(error.status || error.code);
-
-    return (
-        [429, 500, 502, 503, 504].includes(status) ||
-        /\b(429|500|502|503|504)\b/.test(error.message || "")
-    );
-}
-
 async function generateWithRetry(contents, config) {
     const models = [MODEL, FALLBACK_MODEL];
 
     for (const model of models) {
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
-                console.log(
-                    `Trying ${model} - Attempt ${attempt}/${MAX_ATTEMPTS}`
-                );
+                console.log(`Trying ${model} - Attempt ${attempt}`);
 
                 const response = await ai.models.generateContent({
                     model,
@@ -49,39 +34,14 @@ async function generateWithRetry(contents, config) {
                 return response;
 
             } catch (error) {
-                console.error(
-                    `${model} attempt ${attempt} failed:`,
-                    error.message
-                );
-
-                const status = Number(error.status || error.code);
-
-                // Model unavailable: try the fallback immediately.
-                if (status === 404) {
-                    break;
-                }
-
-                // Permanent error: don't retry.
-                if (!isRetryableError(error)) {
-                    throw error;
-                }
-
-                if (attempt < MAX_ATTEMPTS) {
-                    const delay = 1000 * 2 ** (attempt - 1);
-
-                    console.log(`Retrying in ${delay}ms`);
-                    await sleep(delay);
-                }
+                console.log(`Attempt ${attempt} failed: ${error.message}`);
             }
         }
-
-        console.log(`Moving to next model`);
     }
 
-    throw new Error(
-        "Gemini is currently unavailable. Please try again later."
-    );
+    throw new Error("Both Gemini models failed. Please try again later.");
 }
+
 
 const insuranceSchema = {
     type: "object",
@@ -225,17 +185,17 @@ export async function respondInsurance(history) {
         throw new Error("No history provided");
     }
 
-    const response = await ai.models.generateContent({
-        model: MODEL,
-        contents: JSON.stringify({
+    const response = await generateWithRetry(
+        JSON.stringify({
             conversation: history
         }),
-        config: {
+        {
             systemInstruction: instructions,
             responseMimeType: "application/json",
             responseJsonSchema: insuranceSchema
         }
-    });
+    );
+
 
     if (!response.text){
         throw new Error("Returned an empty response");
@@ -283,30 +243,28 @@ export async function respondInsurance(history) {
 
 export async function checkConsent(answer) {
 
-    const response = await ai.models.generateContent({
-        model: MODEL,
+    const response = await generateWithRetry(
+        `
+    Classify the user's response to this question:
 
-        contents: `
-        Classify the user's response to this question:
-        
-        "May I ask you a few personal questions to help
-        recommend the best insurance policy for you?"
-        
-        User response: ${JSON.stringify(answer)}
-        
-        Rules:
-        - accepted: The user clearly agrees.
-        - declined: The user refuses or does not want to continue.
-        - unclear: The response is ambiguous, conditional,
-          or asks for clarification.
-        
-        Do not assume consent.`,
+    "May I ask you a few personal questions to help
+    recommend the best insurance policy for you?"
 
-        config: {
+    User response: ${JSON.stringify(answer)}
+
+    Rules:
+    - accepted: The user clearly agrees.
+    - declined: The user refuses or does not want to continue.
+    - unclear: The response is ambiguous, conditional,
+      or asks for clarification.
+
+    Do not assume consent.
+    `,
+        {
             responseMimeType: "application/json",
             responseJsonSchema: consentSchema
         }
-    });
+    );
 
     if (!response.text) {
         throw new Error("No response from Gemini");
