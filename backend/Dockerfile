@@ -6,7 +6,7 @@ COPY package*.json ./
 
 RUN npm ci --omit=dev
 
-COPY backend/ .backend/
+COPY backend/ ./backend/
 
 EXPOSE 3001
 
