@@ -74,7 +74,10 @@ const ChatWindow = () => {
 
         setMessages((prevMessages) => [
             ...prevMessages,
-            { role: "user", text: answer, },
+            {
+                role: "user",
+                text: answer,
+            },
         ]);
 
         setUserInput("");
@@ -98,11 +101,19 @@ const ChatWindow = () => {
 
             const data = await response.json();
 
+            let tinaMessage = data.message;
+
+            if (data.recommendations?.length > 0) {
+                data.recommendations.forEach((recommendation) => {
+                    tinaMessage += `\n\n${recommendation.product}: ${recommendation.reason}`;
+                });
+            }
+
             setMessages((prev) => [
                 ...prev,
                 {
                     role: "tina",
-                    text: data.message
+                    text: tinaMessage
                 }
             ]);
 
@@ -119,17 +130,14 @@ const ChatWindow = () => {
     };
 
     const stopChat = async () => {
-
-        if (!session || loeading) {
-            return;
-        }
+        if (!session || loading) return;
 
         setLoading(true);
         setError("");
 
         try {
-
-            const response = await fetch(`${API_URL}/${session.id}`,
+            const response = await fetch(
+                `${API_URL}/${session.id}`,
                 { method: "DELETE" }
             );
 
@@ -139,9 +147,11 @@ const ChatWindow = () => {
 
             setSession(null);
             setMessages([]);
+            setUserInput("");
 
-        } catch(error) {
+        } catch (error) {
             setError(error.message);
+
         } finally {
             setLoading(false);
         }

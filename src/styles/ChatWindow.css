@@ -8,7 +8,7 @@
     margin: 150px auto;
     padding: 30px 20px 20px 20px;
     border-radius: 10px;
-    min-height: 600px;
+    height: 600px;
 }
 
 .chat-header {
@@ -30,6 +30,7 @@
 
 .chat-messages {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
 
     border: 1px solid #ccc;
@@ -45,6 +46,7 @@
 
 .chat-message p {
     display: inline-block;
+    white-space: pre-line;
     max-width: 85%;
 
     padding: 10px 15px;
