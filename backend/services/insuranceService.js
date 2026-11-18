@@ -149,7 +149,7 @@ export function startInsurance() {
 
 export async function respondInsurance(history) {
 
-    if (!Array.isArray(history) || !history.length === 0) {
+    if (!Array.isArray(history) || history.length === 0) {
         throw new Error("No history provided");
     }
 
@@ -178,6 +178,32 @@ export async function respondInsurance(history) {
         !Array.isArray(result.recommendations)
     ) {
         throw new Error("Invalid response");
+    }
+
+    const validProducts = [
+        "Mechanical Breakdown Insurance",
+        "Comprehensive Car Insurance",
+        "Third Party Car Insurance"
+    ];
+
+    for (const recommendation of result.recommendations) {
+        if (
+            !recommendation ||
+            typeof recommendation !== "object" ||
+            !validProducts.includes(recommendation.product) ||
+            typeof recommendation.reason !== "string" ||
+            !recommendation.reason.trim()
+        ) {
+            throw new Error("Invalid insurance recommendation");
+        }
+    }
+
+    if (result.completed && result.recommendations.length === 0) {
+        throw new Error("Completed conversation has no recommendations");
+    }
+
+    if (!result.completed && result.recommendations.length > 0) {
+        throw new Error("Recommendations provided before completion");
     }
 
     return result;

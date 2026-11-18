@@ -9,7 +9,6 @@ const ChatWindow = () => {
     const [userInput, setUserInput] = useState("");
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [completed, setCompleted] = useState(false);
     const [error, setError] = useState("");
 
     const messagesEndRef = useRef(null);
@@ -130,6 +129,8 @@ const ChatWindow = () => {
 
         } catch(error) {
             setError(error.message);
+            setUserInput(answer);
+            setMessages((prev) => prev.slice(0, -1));
         } finally {
             setLoading(false);
         }
@@ -214,7 +215,7 @@ const ChatWindow = () => {
                         Submit
                     </button>
 
-                    <button type="button" onClick={stopChat} disabled={loading}>
+                    <button type="button" className="chat-stop" onClick={stopChat} disabled={loading}>
                         Stop
                     </button>
 
@@ -222,7 +223,7 @@ const ChatWindow = () => {
             )}
 
             {session?.completed && (
-                <p>Conversation completed.</p>
+                <p className="chat-completed">Conversation completed.</p>
             )}
 
         </div>

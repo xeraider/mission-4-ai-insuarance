@@ -126,14 +126,6 @@
     background: #005fa8;
 }
 
-.chat-stop {
-    background: #666;
-}
-
-.chat-stop:hover {
-    background: #444;
-}
-
 .chat-form button[type="button"] {
     background: #666;
 }
