@@ -5,11 +5,75 @@ dotenv.config({
     path: "./backend/.env"
 });
 
-const MODEL = "gemini-3.1-flash-lite"
+const MODEL = "gemini-3.1-flash-lite";
+const FALLBACK_MODEL = "gemini-2.5-flash";
+const MAX_ATTEMPTS = 3;
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,
 });
+
+const sleep = (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+function isRetryableError(error) {
+    const status = Number(error.status || error.code);
+
+    return (
+        [429, 500, 502, 503, 504].includes(status) ||
+        /\b(429|500|502|503|504)\b/.test(error.message || "")
+    );
+}
+
+async function generateWithRetry(contents, config) {
+    const models = [MODEL, FALLBACK_MODEL];
+
+    for (const model of models) {
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                console.log(
+                    `Trying ${model} - Attempt ${attempt}/${MAX_ATTEMPTS}`
+                );
+
+                const response = await ai.models.generateContent({
+                    model,
+                    contents,
+                    config
+                });
+
+                if (!response.text) {
+                    throw new Error("Empty response from Gemini");
+                }
+
+                return response;
+
+            } catch (error) {
+                console.error(
+                    `${model} attempt ${attempt} failed:`,
+                    error.message
+                );
+
+                if (!isRetryableError(error)) {
+                    throw error;
+                }
+
+                if (attempt < MAX_ATTEMPTS) {
+                    const delay = 1000 * 2 ** (attempt - 1);
+
+                    console.log(`Retrying in ${delay}ms`);
+                    await sleep(delay);
+                }
+            }
+        }
+
+        console.log(`Switching to next Gemini model`);
+    }
+
+    throw new Error(
+        "Gemini is currently unavailable. Please try again later."
+    );
+}
 
 const insuranceSchema = {
     type: "object",
