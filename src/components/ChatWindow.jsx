@@ -1,7 +1,7 @@
 import {useState, useRef, useEffect} from "react";
 import '../styles/ChatWindow.css'
 
-const API_URL = "http://localhost:3001/api/insurance";
+const API_URL = "/api/insurance";
 
 const ChatWindow = () => {
 
