@@ -5,7 +5,7 @@ dotenv.config({
     path: "./backend/.env"
 });
 
-const MODEL = "gemini-3.8-flash"
+const MODEL = "gemini-3.1-flash-lite"
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,
