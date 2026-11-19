@@ -100,11 +100,11 @@ const ChatWindow = () => {
                 })
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
                 throw new Error(data.error || "Failed to get response");
             }
+
+            const data = await response.json();
 
             let tinaMessage = data.message;
 

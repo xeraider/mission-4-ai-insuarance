@@ -42,7 +42,6 @@ async function generateWithRetry(contents, config) {
     throw new Error("Both Gemini models failed. Please try again later.");
 }
 
-
 const insuranceSchema = {
     type: "object",
     properties: {
